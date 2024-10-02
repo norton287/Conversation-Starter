@@ -1,4 +1,5 @@
-SSID = "NETGEAR72"
-SSID2 = "ElJorgeJones Pixel 7 Pro"
-PSK = "Futaba17futaba12!?"
+SSID = "YOURSSID"
+SSID2 = "YOURSSID2"
+PSK = "PASSWORD1"
+PSK2 = "PASSWORD2"
 COUNTRY = "US"
