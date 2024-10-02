@@ -46,22 +46,26 @@ def output_display(tmptext):
     display.set_pen(BLACK)
 
     text = tmptext
-    x, y = 20, 15
+    
     text_size = 2
 
     # center text horizontally
     title_width = display.measure_text(text, text_size)
-    text_x = int((display.get_width() - title_width) / 2)
+    text_x = int((WIDTH - title_width) / 2)
 
     row_height = text_size * 5 + 20
 
     # calculate the top-left corner of the text based on the height of the display and the size of the text
-    top_left_y = (int(display.get_height()) - row_height) // 2
+    top_left_y = (int(HEIGHT) - row_height) // 2
 
-    text_y = int(top_left_y - (row_height / 2))
+    text_y = (int(HEIGHT - row_height)) // 2
 
     display.text(text, text_x, text_y, -1, text_size)
     display.update()    
+    
+dtext = "MattOS"
+output_display(dtext)
+utime.sleep(5)
 
 # Connect to wifi and synchronize the RTC time from NTP
 def sync_time():
@@ -95,6 +99,7 @@ def sync_time():
             except OSError as e:
                 print(f'Exception setting time {e}')
                 cset = False
+                utime.sleep(2) # Set a backoff time as to not spam the NTP server
                 pass
     
         # Get the current time in UTC
@@ -146,6 +151,7 @@ def sync_time():
     year, month, day, wd, hour, minute, second, _ = rtc.datetime()
     text = f'{month}-{day}-{year}, {hour}:{minute}:{second}'
     output_display(text)
+    utime.sleep(4)
     print(f'Month: {mnth}, Day: {d}, WkDay: {wkd}, Hour: {hour}, Minute: {m}, Second: {s}')
     print(f'Year = {year}, Month = {month}, Day = {day}, Hour = {hour}, Minute = {minute}, Second = {second}')
     print("Time set in sync_time function!")
@@ -171,6 +177,10 @@ def connect_net():
         net = True
         status = wlan.ifconfig()
         print('ip = ' + status[0])
+        print('ip = ' + status[0])
+        text = f'IP = {status[0]}'
+        output_display(text)
+        utime.sleep(4)
         sync_time()
         return
 
@@ -180,9 +190,16 @@ def connect_net():
             net2 = wlan.ifconfig()
             print('WiFi Link Up!')
             print('ip = ' + net2[0])
+            print('ip = ' + status[0])
+            text = f'IP = {status[0]}'
+            output_display(text)
+            utime.sleep(4)
             break
-
+        
+        qtext = "Connecting To WiFi"
+        output_display(qtext)
         wlan.connect(ssid, password)
+        utime.sleep(4)
 
         # Wait for connect or fail
         max_wait = 20
@@ -191,20 +208,36 @@ def connect_net():
                 net = True
                 status = wlan.ifconfig()
                 print('ip = ' + status[0])
-                text = status[0]
+                text = f'IP = {status[0]}'
                 output_display(text)
+                utime.sleep(4)
                 sync_time()
                 break
+            else:
+                text = "Retrying WiFi"
+                output_display(text)
+                if wlan.status() is -2:
+                    print('No Net!')
+                if wlan.status() is 0:
+                    print('Link Down!')
+                if wlan.status() is 1:
+                    print('Link Join!')
+                if wlan.status() is 2:
+                    print('No IP Address!')
+                if wlan.status() is -3:
+                    print('Failed Auth!')
             max_wait -= 1
-            utime.sleep(1000)
+            utime.sleep(1)
+            output_display(qtext)
             wlan.connect(ssid,password)
-            utime.sleep(1000)
+            utime.sleep(3)
                 
 try:
     if not net:
         while not net:
             if net:
                 print("Breaking net connect loop!")
+                break
             max_tries = 10
             while max_tries > 0:
                 if net:
@@ -214,9 +247,10 @@ try:
                 max_tries -= 1
 except Exception as e:
     # Write to Display
-
-    text = "No WiFi, Try Rebooting!"
-    output_display(text)
+    if not net:
+        text = "No WiFi, Try Rebooting!"
+        output_display(text)
+    print(f'Error configuring WiFi or setting time {e}')
 
 def hsv_to_rgb(h: float, s: float, v: float) -> tuple[float, float, float]:
     if s == 0.0:

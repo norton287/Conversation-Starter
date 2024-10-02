@@ -42,29 +42,39 @@ PINK = display.create_pen(214, 28, 78)
 ORANGE_1 = display.create_pen(247, 126, 33)
 ORANGE_2 = display.create_pen(250, 194, 19)
 
-def connect_net():
-    global net
+# Output to Display the passed text
+def output_display(tmptext):
+    global doutput
+
     # Write to Display
     display.set_pen(WHITE)
     display.clear()
     display.set_pen(BLACK)
 
-    text = "Configuring WiFi"
-    x, y = 20, 15
+    text = tmptext
+    
     text_size = 2
-    line_height = 2
 
-    # center text horixontally
+    # center text horizontally
     title_width = display.measure_text(text, text_size)
-    text_x = 10
+    text_x = int((WIDTH - title_width) / 2)
 
     row_height = text_size * 5 + 20
 
-    # center list items vertically
-    text_y = int(3 * row_height - (row_height / 2))
-    
-    display.text(text, text_x, text_y + 1, -1, text_size)
+    # calculate the top-left corner of the text based on the height of the display and the size of the text
+    top_left_y = (int(HEIGHT) - row_height) // 2
+
+    text_y = (int(HEIGHT - row_height)) // 2
+
+    display.text(text, text_x, text_y, -1, text_size)
     display.update()
+
+def connect_net():
+    global net
+    # Write to Display
+    
+    text = "Configuring WiFi"
+    output_display(text)
     
     # Wifi Network Info
     ssids = [SSID, SSID2]
@@ -78,85 +88,82 @@ def connect_net():
     if wlan.isconnected():
         print("WiFi is already connected.")
         net = True
+        status = wlan.ifconfig()
+        print('ip = ' + status[0])
+        print('ip = ' + status[0])
+        text = f'IP = {status[0]}'
+        output_display(text)
+        utime.sleep(4)
         sync_time()
         return
 
     for ssid, password in zip(ssids, passwords):
-        if net or wlan.status() == 3:
+        if net or wlan.isconnected():
             net = True
             net2 = wlan.ifconfig()
             print('WiFi Link Up!')
             print('ip = ' + net2[0])
+            print('ip = ' + status[0])
+            text = f'IP = {status[0]}'
+            output_display(text)
+            utime.sleep(4)
             break
-
+        
+        qtext = "Connecting To WiFi"
+        output_display(qtext)
         wlan.connect(ssid, password)
+        utime.sleep(4)
 
         # Wait for connect or fail
         max_wait = 20
         while max_wait > 0:
-            if wlan.status() == 3:
+            if wlan.isconnected():
                 net = True
-                sync_time()
                 status = wlan.ifconfig()
                 print('ip = ' + status[0])
-                break
-            if wlan.status() == 3:
+                text = f'IP = {status[0]}'
+                output_display(text)
+                utime.sleep(4)
                 sync_time()
-                status = wlan.ifconfig()
-                print('ip = ' + status[0])
-                net = True
                 break
+            else:
+                text = "Retrying WiFi"
+                output_display(text)
+                if wlan.status() is -2:
+                    print('No Net!')
+                if wlan.status() is 0:
+                    print('Link Down!')
+                if wlan.status() is 1:
+                    print('Link Join!')
+                if wlan.status() is 2:
+                    print('No IP Address!')
+                if wlan.status() is -3:
+                    print('Failed Auth!')
             max_wait -= 1
-            if wlan.status() is -2:
-                print('No Net!')
-            if wlan.status() is 0:
-                print('Link Down!')
-                wlan.active(False)
-                wlan.active(True)
-            if wlan.status() is 1:
-                print('Link Join!')
-            if wlan.status() is 2:
-                print('No IP Address!')
-            if wlan.status() is -3:
-                print('Failed Auth!')
-                net = True
-                break
             utime.sleep(1)
-            
+            output_display(qtext)
+            wlan.connect(ssid,password)
+            utime.sleep(3)
                 
 try:
     if not net:
         while not net:
+            if net:
+                print("Breaking net connect loop!")
+                break
             max_tries = 10
             while max_tries > 0:
                 if net:
+                    print("Breaking net connect loop!")
                     break
                 connect_net()
                 max_tries -= 1
 except Exception as e:
     # Write to Display
-    display.set_pen(WHITE)
-    display.clear()
-    display.set_pen(BLACK)
-
-    text = "No WiFi"
-    text2 = "Try Rebooting"
-    x, y = 20, 15
-    text_size = 2
-    line_height = 2
-
-    # center text horixontally
-    title_width = display.measure_text(text, text_size)
-    text_x = 10
-    row_height = text_size * 5 + 20
-
-    # center list items vertically
-    text_y = 20
-    text_y2 = 50
-
-    display.text(text, text_x, text_y, -1, text_size)
-    display.text(text2, text_x, text_y2, -1, text_size)
-    display.update()
+    if not net:
+        text = "No WiFi, Try Rebooting!"
+        output_display(text)
+    print(f'Error configuring WiFi or setting time {e}')
 
 def get_data():
     global weathercode, temperature, windspeed, winddirection, date, time
