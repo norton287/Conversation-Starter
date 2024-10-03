@@ -177,7 +177,6 @@ def connect_net():
         net = True
         status = wlan.ifconfig()
         print('ip = ' + status[0])
-        print('ip = ' + status[0])
         text = f'IP = {status[0]}'
         output_display(text)
         utime.sleep(4)
@@ -187,13 +186,12 @@ def connect_net():
     for ssid, password in zip(ssids, passwords):
         if net or wlan.isconnected():
             net = True
-            net2 = wlan.ifconfig()
             print('WiFi Link Up!')
-            print('ip = ' + net2[0])
             print('ip = ' + status[0])
             text = f'IP = {status[0]}'
             output_display(text)
             utime.sleep(4)
+            sync_time()
             break
         
         qtext = "Connecting To WiFi"
@@ -243,8 +241,9 @@ try:
                 if net:
                     print("Breaking net connect loop!")
                     break
-                connect_net()
-                max_tries -= 1
+                else:
+                    connect_net()
+                    max_tries -= 1
 except Exception as e:
     # Write to Display
     if not net:

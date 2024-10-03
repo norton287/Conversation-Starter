@@ -181,10 +181,9 @@ def connect_net():
         net = True
         status = wlan.ifconfig()
         print('ip = ' + status[0])
-        print('ip = ' + status[0])
         text = f'IP = {status[0]}'
         output_display(text)
-        utime.sleep(8)
+        utime.sleep(4)
         sync_time()
         return
 
@@ -193,11 +192,10 @@ def connect_net():
             net = True
             net2 = wlan.ifconfig()
             print('WiFi Link Up!')
-            print('ip = ' + net2[0])
             print('ip = ' + status[0])
             text = f'IP = {status[0]}'
             output_display(text)
-            utime.sleep(8)
+            utime.sleep(4)
             break
         
         qtext = "Connecting To WiFi"
@@ -214,7 +212,7 @@ def connect_net():
                 print('ip = ' + status[0])
                 text = f'IP = {status[0]}'
                 output_display(text)
-                utime.sleep(8)
+                utime.sleep(4)
                 sync_time()
                 break
             else:
@@ -247,15 +245,16 @@ try:
                 if net:
                     print("Breaking net connect loop!")
                     break
-                connect_net()
-                max_tries -= 1
+                else:
+                    connect_net()
+                    max_tries -= 1
 except Exception as e:
     # Write to Display
     if not net:
         text = "No WiFi, Try Rebooting!"
         output_display(text)
     print(f'Error configuring WiFi or setting time {e}')
-
+    
 def draw_clock():
 
     display.set_pen(WHITE)

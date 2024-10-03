@@ -3,6 +3,7 @@ from WIFI_CONFIG import SSID, SSID2, PSK
 import utime
 import network
 import time
+import machine
 import rp2
 import uasyncio
 from pimoroni import Button, Pin, RGBLED
@@ -179,7 +180,6 @@ def connect_net():
         net = True
         status = wlan.ifconfig()
         print('ip = ' + status[0])
-        print('ip = ' + status[0])
         text = f'IP = {status[0]}'
         output_display(text)
         utime.sleep(4)
@@ -188,7 +188,6 @@ def connect_net():
     for ssid, password in zip(ssids, passwords):
         if net or wlan.isconnected():
             net = True
-            net2 = wlan.ifconfig()
             print('WiFi Link Up!')
             print('ip = ' + net2[0])
             print('ip = ' + status[0])
@@ -211,7 +210,7 @@ def connect_net():
                 print('ip = ' + status[0])
                 text = f'IP = {status[0]}'
                 output_display(text)
-                utime.sleep(8)
+                utime.sleep(4)
                 break
             else:
                 text = "Retrying WiFi"
@@ -243,14 +242,15 @@ try:
                 if net:
                     print("Breaking net connect loop!")
                     break
-                connect_net()
-                max_tries -= 1
+                else:
+                    connect_net()
+                    max_tries -= 1
 except Exception as e:
     # Write to Display
     if not net:
         text = "No WiFi, Try Rebooting!"
         output_display(text)
-    print(f'Error connecting or setting time {e}')
+    print(f'Error configuring WiFi or setting time {e}')
 
 # Fetch the RSS feed
 response = urequests.get('https://www.npr.org/rss/rss.php?id=1019')
